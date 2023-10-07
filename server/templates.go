@@ -19,12 +19,11 @@ var home = template.Must(template.New("home").Parse(`
   </header>
 
   <main>
-	<form action="/search" method="get" hx-boost="true" hx-target="#results" hx-replace="outerHTML" hx-on::after-request="this.reset()">
+	<form action="/" method="get" hx-boost="true" hx-target="#results" hx-replace="innerHTML" hx-on::after-request="this.reset()">
 	  <div class="center">
 	    <input type="text" name="pattern" required></input>
 	    <button name="mode" value="match">Match</button>
 	    <button name="mode" value="anagrams">Anagrams</button>
-        <button name="mode" value="clear">Clear</button>
 	  </div>
     </form>
 	<div id="results">
@@ -34,6 +33,11 @@ var home = template.Must(template.New("home").Parse(`
 </body>
 </html>
 `))
+
+type ResultParams struct {
+	Preamble string
+	Results  []string
+}
 
 var results = template.Must(template.New("results").Parse(`
 {{ with .Preamble }}

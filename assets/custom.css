@@ -1,3 +1,12 @@
 div.center {
     text-align: center;
 }
+
+div#results {
+    overflow-y: auto;
+    max-height: 70dvh;
+}
+
+div#results > ul {
+    list-style-type: none;
+}

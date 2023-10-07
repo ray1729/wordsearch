@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sort"
 
 	"github.com/ray1729/puzzle-solver/anagram"
 	"github.com/ray1729/puzzle-solver/grep"
@@ -13,8 +14,7 @@ import (
 func New(assetsPath string, grepDB grep.DB, anagramDB anagram.DB) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(assetsPath))))
-	mux.HandleFunc("/", getHomePage)
-	mux.HandleFunc("/search", getResults(grepDB, anagramDB))
+	mux.HandleFunc("/", handler(grepDB, anagramDB))
 	return withRequestLogger(mux)
 }
 
@@ -25,47 +25,48 @@ func withRequestLogger(h http.Handler) http.Handler {
 	})
 }
 
-func getResults(grepDB grep.DB, anagramDB anagram.DB) func(w http.ResponseWriter, r *http.Request) {
+func handler(grepDB grep.DB, anagramDB anagram.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			log.Printf("error parsing form: %v", err)
 			http.Error(w, "error parsing form", http.StatusBadRequest)
 			return
 		}
-		mode := r.Form.Get("mode")
-		pattern := r.Form.Get("pattern")
-		templateParams := struct {
-			Preamble string
-			Results  []string
-		}{}
-		switch mode {
+		switch r.Form.Get("mode") {
 		case "match":
-			templateParams.Results = grepDB.FindMatches(pattern)
-			if len(templateParams.Results) > 0 {
-				templateParams.Preamble = fmt.Sprintf("Matches for %q:", pattern)
-			} else {
-				templateParams.Preamble = fmt.Sprintf("Found no matches for %q", pattern)
-			}
+			params := matchResults(grepDB, r.Form.Get("pattern"))
+			renderTemplate(w, results, params)
 		case "anagrams":
-			templateParams.Results = anagramDB.FindAnagrams(pattern)
-			if len(templateParams.Results) > 0 {
-				templateParams.Preamble = fmt.Sprintf("Anagrams of %q:", pattern)
-			} else {
-				templateParams.Preamble = fmt.Sprintf("Found no anagrams of %q", pattern)
-			}
-		case "clear":
-			// pass
+			params := anagramResults(anagramDB, r.Form.Get("pattern"))
+			renderTemplate(w, results, params)
 		default:
-			log.Printf("invalid mode: %s", mode)
-			http.Error(w, "invalid mode", http.StatusBadRequest)
-			return
+			renderTemplate(w, home, nil)
 		}
-		renderTemplate(w, results, templateParams)
 	}
 }
 
-func getHomePage(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, home, nil)
+func anagramResults(db anagram.DB, pattern string) ResultParams {
+	var params ResultParams
+	params.Results = db.FindAnagrams(pattern)
+	if len(params.Results) > 0 {
+		params.Preamble = fmt.Sprintf("Anagrams of %q:", pattern)
+	} else {
+		params.Preamble = fmt.Sprintf("Found no anagrams of %q", pattern)
+	}
+	sort.Slice(params.Results, func(i, j int) bool { return params.Results[i] < params.Results[j] })
+	return params
+}
+
+func matchResults(db grep.DB, pattern string) ResultParams {
+	var params ResultParams
+	params.Results = db.FindMatches(pattern)
+	if len(params.Results) > 0 {
+		params.Preamble = fmt.Sprintf("Matches for %q:", pattern)
+	} else {
+		params.Preamble = fmt.Sprintf("Found no matches for %q", pattern)
+	}
+	sort.Slice(params.Results, func(i, j int) bool { return params.Results[i] < params.Results[j] })
+	return params
 }
 
 func renderTemplate(w http.ResponseWriter, t *template.Template, params any) {
