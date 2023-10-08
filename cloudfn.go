@@ -52,7 +52,13 @@ func init() {
 	if err := initializeDB(ctx, bucketName, objectName); err != nil {
 		panic(err)
 	}
-	var corsHandler = cors.Default()
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"*"},
+		AllowedMethods:   []string{http.MethodPost},
+		AllowCredentials: false,
+		MaxAge:           3600,
+	})
 	log.Println("Registering HTTP function with the Functions Framework")
 	functions.HTTP("WordSearch", func(w http.ResponseWriter, r *http.Request) {
 		corsHandler.ServeHTTP(w, r, handleFormSubmission)
