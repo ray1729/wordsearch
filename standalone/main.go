@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ray1729/puzzle-solver/anagram"
-	"github.com/ray1729/puzzle-solver/match"
-	"github.com/ray1729/puzzle-solver/server"
+	"github.com/ray1729/wordsearch/anagram"
+	"github.com/ray1729/wordsearch/match"
+	"github.com/ray1729/wordsearch/standalone/server"
 )
 
 var matchDB match.DB

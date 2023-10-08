@@ -6,7 +6,7 @@ import (
 
 	// Blank-import the function package so the init() runs
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
-	_ "github.com/ray1729/puzzle-solver/cloudfn"
+	_ "github.com/ray1729/wordsearch"
 )
 
 func main() {

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/ray1729/puzzle-solver/anagram"
-	"github.com/ray1729/puzzle-solver/match"
+	"github.com/ray1729/wordsearch/anagram"
+	"github.com/ray1729/wordsearch/match"
 )
 
 func New(assetsPath string, matchDB match.DB, anagramDB anagram.DB) http.Handler {

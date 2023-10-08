@@ -1,4 +1,4 @@
-package cloudfn
+package wordsearch
 
 import (
 	"bufio"
@@ -12,8 +12,8 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	"github.com/ray1729/puzzle-solver/anagram"
-	"github.com/ray1729/puzzle-solver/match"
+	"github.com/ray1729/wordsearch/anagram"
+	"github.com/ray1729/wordsearch/match"
 	"github.com/rs/cors"
 )
 

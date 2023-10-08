@@ -5,7 +5,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/ray1729/puzzle-solver/util"
+	"github.com/ray1729/wordsearch/util"
 )
 
 type DB interface {

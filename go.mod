@@ -1,4 +1,4 @@
-module github.com/ray1729/puzzle-solver
+module github.com/ray1729/wordsearch
 
 go 1.21.1
 
