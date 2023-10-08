@@ -19,11 +19,12 @@ var home = template.Must(template.New("home").Parse(`
   </header>
 
   <main>
-	<form action="/" method="get" hx-boost="true" hx-target="#results" hx-replace="innerHTML" hx-on::after-request="this.reset()">
+	<form action="/search" method="post" hx-boost="true" hx-target="#results">
 	  <div class="center">
 	    <input type="text" name="pattern" required></input>
 	    <button name="mode" value="match">Match</button>
 	    <button name="mode" value="anagrams">Anagrams</button>
+		<button type="reset">Clear</button>
 	  </div>
     </form>
 	<div id="results">

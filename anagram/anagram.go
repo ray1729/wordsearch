@@ -10,6 +10,18 @@ import (
 
 type DB interface {
 	FindAnagrams(s string) []string
+	Add(s string)
+}
+
+type HashDBImpl map[string][]string
+
+func New() HashDBImpl {
+	return make(HashDBImpl)
+}
+
+func (db HashDBImpl) Add(s string) {
+	k := toKey(s)
+	db[k] = append(db[k], s)
 }
 
 func toKey(s string) string {
@@ -18,15 +30,11 @@ func toKey(s string) string {
 	return string(xs)
 }
 
-type HashDBImpl map[string][]string
-
 func Load(r io.Reader) (DB, error) {
-	db := make(HashDBImpl)
+	db := New()
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
-		s := sc.Text()
-		k := toKey(s)
-		db[k] = append(db[k], s)
+		db.Add(sc.Text())
 
 	}
 	if err := sc.Err(); err != nil {

@@ -1,4 +1,4 @@
-package grep
+package match
 
 import (
 	"bufio"
@@ -9,6 +9,20 @@ import (
 
 type DB interface {
 	FindMatches(s string) []string
+	Add(s string)
+}
+
+type PrefixTreeImpl struct {
+	Root *Node
+}
+
+func New() PrefixTreeImpl {
+	return PrefixTreeImpl{Root: &Node{}}
+}
+
+func (db PrefixTreeImpl) Add(s string) {
+	xs := util.LowerCaseAlpha(s)
+	db.Root.add(xs, s)
 }
 
 type Node struct {
@@ -17,7 +31,7 @@ type Node struct {
 	Results  []string
 }
 
-func (n *Node) Add(xs []byte, s string) {
+func (n *Node) add(xs []byte, s string) {
 	if len(xs) == 0 {
 		n.Results = append(n.Results, s)
 		return
@@ -34,16 +48,14 @@ func (n *Node) Add(xs []byte, s string) {
 		child = &Node{Value: x}
 		n.Children = append(n.Children, child)
 	}
-	child.Add(xs[1:], s)
+	child.add(xs[1:], s)
 }
 
 func Load(r io.Reader) (DB, error) {
-	db := &Node{}
+	db := New()
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
-		s := sc.Text()
-		xs := util.LowerCaseAlpha(s)
-		db.Add(xs, s)
+		db.Add(sc.Text())
 	}
 	if err := sc.Err(); err != nil {
 		return nil, err
@@ -51,8 +63,8 @@ func Load(r io.Reader) (DB, error) {
 	return db, nil
 }
 
-func (n *Node) FindMatches(s string) []string {
-	return n.find(util.LowerCaseAlphaOrDot(s))
+func (db PrefixTreeImpl) FindMatches(s string) []string {
+	return db.Root.find(util.LowerCaseAlphaOrDot(s))
 }
 
 func (n *Node) find(xs []byte) []string {

@@ -8,13 +8,16 @@ import (
 	"sort"
 
 	"github.com/ray1729/puzzle-solver/anagram"
-	"github.com/ray1729/puzzle-solver/grep"
+	"github.com/ray1729/puzzle-solver/match"
 )
 
-func New(assetsPath string, grepDB grep.DB, anagramDB anagram.DB) http.Handler {
+func New(assetsPath string, matchDB match.DB, anagramDB anagram.DB) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(assetsPath))))
-	mux.HandleFunc("/", handler(grepDB, anagramDB))
+	mux.HandleFunc("/search", searchHandler(matchDB, anagramDB))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, home, nil)
+	})
 	return withRequestLogger(mux)
 }
 
@@ -25,7 +28,7 @@ func withRequestLogger(h http.Handler) http.Handler {
 	})
 }
 
-func handler(grepDB grep.DB, anagramDB anagram.DB) func(w http.ResponseWriter, r *http.Request) {
+func searchHandler(matchDB match.DB, anagramDB anagram.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			log.Printf("error parsing form: %v", err)
@@ -34,13 +37,13 @@ func handler(grepDB grep.DB, anagramDB anagram.DB) func(w http.ResponseWriter, r
 		}
 		switch r.Form.Get("mode") {
 		case "match":
-			params := matchResults(grepDB, r.Form.Get("pattern"))
+			params := matchResults(matchDB, r.Form.Get("pattern"))
 			renderTemplate(w, results, params)
 		case "anagrams":
 			params := anagramResults(anagramDB, r.Form.Get("pattern"))
 			renderTemplate(w, results, params)
 		default:
-			renderTemplate(w, home, nil)
+			renderTemplate(w, results, ResultParams{})
 		}
 	}
 }
@@ -57,7 +60,7 @@ func anagramResults(db anagram.DB, pattern string) ResultParams {
 	return params
 }
 
-func matchResults(db grep.DB, pattern string) ResultParams {
+func matchResults(db match.DB, pattern string) ResultParams {
 	var params ResultParams
 	params.Results = db.FindMatches(pattern)
 	if len(params.Results) > 0 {

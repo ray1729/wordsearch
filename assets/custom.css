@@ -3,10 +3,11 @@ div.center {
 }
 
 div#results {
-    overflow-y: auto;
-    max-height: 70dvh;
+    height: 60dvh;
 }
 
 div#results > ul {
     list-style-type: none;
+    overflow-y: auto;
+    height: 100%;
 }
