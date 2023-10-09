@@ -1,16 +1,14 @@
 package wordsearch
 
 import (
-	"bufio"
-	"context"
+	"embed"
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"sort"
 	"text/template"
 
-	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/ray1729/wordsearch/anagram"
 	"github.com/ray1729/wordsearch/match"
@@ -20,37 +18,30 @@ import (
 var anagramDB anagram.DB
 var matchDB match.DB
 
-func initializeDB(ctx context.Context, bucketName, objectName string) error {
-	client, err := storage.NewClient(ctx)
+func initializeDB() error {
+	anagrams, err := fs.Open("data/anagram.bin")
 	if err != nil {
-		return fmt.Errorf("error creating storage client: %v", err)
+		return err
 	}
-	r, err := client.Bucket(bucketName).Object(objectName).NewReader(ctx)
+	defer anagrams.Close()
+	if err := gob.NewDecoder(anagrams).Decode(&anagramDB); err != nil {
+		return err
+	}
+	matches, err := fs.Open("data/match.bin")
 	if err != nil {
-		return fmt.Errorf("error opening gs://%s/%s: %v", bucketName, objectName, err)
+		return err
 	}
-	defer r.Close()
-	anagramDB = anagram.New()
-	matchDB = match.New()
-	sc := bufio.NewScanner(r)
-	for sc.Scan() {
-		s := sc.Text()
-		anagramDB.Add(s)
-		matchDB.Add(s)
-	}
-	if err := sc.Err(); err != nil {
-		return fmt.Errorf("error reading gs://%s/%s: %v", bucketName, objectName, err)
+	defer matches.Close()
+	if err := gob.NewDecoder(matches).Decode(&matchDB); err != nil {
+		return err
 	}
 	return nil
 }
 
 func init() {
-	ctx := context.Background()
-	bucketName := mustGetenv("WORDLIST_BUCKET")
-	objectName := mustGetenv("WORDLIST_PATH")
 	log.Println("Initializing databases")
-	if err := initializeDB(ctx, bucketName, objectName); err != nil {
-		panic(err)
+	if err := initializeDB(); err != nil {
+		log.Fatal(err)
 	}
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -63,14 +54,6 @@ func init() {
 	functions.HTTP("WordSearch", func(w http.ResponseWriter, r *http.Request) {
 		corsHandler.ServeHTTP(w, r, handleFormSubmission)
 	})
-}
-
-func mustGetenv(s string) string {
-	v := os.Getenv(s)
-	if len(v) == 0 {
-		panic(fmt.Sprintf("environment variable %s not set", s))
-	}
-	return v
 }
 
 func handleFormSubmission(w http.ResponseWriter, r *http.Request) {
@@ -145,3 +128,6 @@ var resultsTmpl = template.Must(template.New("results").Parse(`
 {{ end }}
 </ul>
 `))
+
+//go:embed data/*
+var fs embed.FS

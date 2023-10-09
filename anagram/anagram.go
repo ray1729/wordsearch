@@ -8,18 +8,13 @@ import (
 	"github.com/ray1729/wordsearch/util"
 )
 
-type DB interface {
-	FindAnagrams(s string) []string
-	Add(s string)
+type DB map[string][]string
+
+func New() DB {
+	return make(DB)
 }
 
-type HashDBImpl map[string][]string
-
-func New() HashDBImpl {
-	return make(HashDBImpl)
-}
-
-func (db HashDBImpl) Add(s string) {
+func (db DB) Add(s string) {
 	k := toKey(s)
 	db[k] = append(db[k], s)
 }
@@ -37,12 +32,9 @@ func Load(r io.Reader) (DB, error) {
 		db.Add(sc.Text())
 
 	}
-	if err := sc.Err(); err != nil {
-		return nil, err
-	}
-	return db, nil
+	return db, sc.Err()
 }
 
-func (d HashDBImpl) FindAnagrams(s string) []string {
+func (d DB) FindAnagrams(s string) []string {
 	return d[toKey(s)]
 }

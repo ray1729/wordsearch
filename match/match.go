@@ -7,20 +7,15 @@ import (
 	"github.com/ray1729/wordsearch/util"
 )
 
-type DB interface {
-	FindMatches(s string) []string
-	Add(s string)
-}
-
-type PrefixTreeImpl struct {
+type DB struct {
 	Root *Node
 }
 
-func New() PrefixTreeImpl {
-	return PrefixTreeImpl{Root: &Node{}}
+func New() DB {
+	return DB{Root: &Node{}}
 }
 
-func (db PrefixTreeImpl) Add(s string) {
+func (db DB) Add(s string) {
 	xs := util.LowerCaseAlpha(s)
 	db.Root.add(xs, s)
 }
@@ -57,13 +52,10 @@ func Load(r io.Reader) (DB, error) {
 	for sc.Scan() {
 		db.Add(sc.Text())
 	}
-	if err := sc.Err(); err != nil {
-		return nil, err
-	}
-	return db, nil
+	return db, sc.Err()
 }
 
-func (db PrefixTreeImpl) FindMatches(s string) []string {
+func (db DB) FindMatches(s string) []string {
 	return db.Root.find(util.LowerCaseAlphaOrDot(s))
 }
 
