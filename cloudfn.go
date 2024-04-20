@@ -124,7 +124,12 @@ var resultsTmpl = template.Must(template.New("results").Parse(`
 {{ end }}
 <ul>
 {{ range .Results }}
-  <li>{{.}}</li>
+  <li>
+	  {{.}}
+  	  <a href="https://dicoweb.gnu.org.ua/?q={{.}}&db=gcide&define=1" target="defn">GCIDE</a>
+	  <a href="https://dicoweb.gnu.org.ua/?q={{.}}&db=WordNet&define=1" target="defn">WordNet</a>
+	  <a href="https://dictionary.cambridge.org/dictionary/english/{{.}}" target="defn">Cambridge</a>
+  </li>
 {{ end }}
 </ul>
 `))
