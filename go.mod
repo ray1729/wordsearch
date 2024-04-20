@@ -5,7 +5,7 @@ go 1.21.1
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.0
 	github.com/rs/cors v1.10.1
-	golang.org/x/text v0.13.0
+	golang.org/x/text v0.14.0
 )
 
 require (
