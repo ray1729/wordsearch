@@ -11,9 +11,8 @@ import (
 	"github.com/ray1729/wordsearch/match"
 )
 
-func New(assetsPath string, matchDB match.DB, anagramDB anagram.DB) http.Handler {
+func New(matchDB match.DB, anagramDB anagram.DB) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(assetsPath))))
 	mux.HandleFunc("/search", searchHandler(matchDB, anagramDB))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, home, nil)

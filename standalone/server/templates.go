@@ -8,9 +8,23 @@ var home = template.Must(template.New("home").Parse(`
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="/assets/simple.css">
-	<link rel="stylesheet" href="/assets/custom.css">
-	<script src="/assets/htmx.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+	<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+		div.center {
+			text-align: center;
+		}
+
+		div#results {
+			height: 60dvh;
+		}
+
+		div#results > ul {
+			list-style-type: none;
+			overflow-y: auto;
+			height: 100%;
+		}
+    </style>
     <title>Anagram and Word Search</title>
 </head>
 <body>
@@ -19,7 +33,7 @@ var home = template.Must(template.New("home").Parse(`
   </header>
 
   <main>
-	<form action="/search" method="post" hx-boost="true" hx-target="#results">
+	<form action="/search" method="post" hx-boost="true" hx-target="#results" hx-push-url="false">
 	  <div class="center">
 	    <input id="pattern" type="text" name="pattern" required autofocus></input>
 	    <button name="mode" value="match">Match</button>
@@ -51,9 +65,8 @@ var results = template.Must(template.New("results").Parse(`
 {{ end }}
 <ul>
 {{ range .Results }}
-  <li>{{.}}
-    <a href="https://dicoweb.gnu.org.ua/?q={{.}}&db=gcide&define=1" target="defn"><span class="small">GCIDE</span></a>
-    <a href="https://dicoweb.gnu.org.ua/?q={{.}}&db=WordNet&define=1" target="defn"><span class="small">WordNet</span></a>
+  <li>
+    <a href="https://dicoweb.gnu.org.ua/?q={{.}}&db=gcide&define=1" target="defn">{{.}}</a>
   </li>
 {{ end }}
 </ul>
